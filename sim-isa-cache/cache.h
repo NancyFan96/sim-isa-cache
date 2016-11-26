@@ -3,15 +3,12 @@
 
 #include <stdint.h>
 #include "storage.h"
+#include "def.h"
 
 #define HIT 0
 #define COLD_MISS 1
 #define CONFLICT_MISS 2
 
-#define ONES(x,y)       (uint64_t) ((((uint64_t)1<<x)-1)+((uint64_t)1<<x) -(((uint64_t)1<<y)-1))
-
-#define READ 1
-#define WRITE 0
 
 typedef struct CacheConfig_ {
     int size;
@@ -28,6 +25,7 @@ typedef struct Block_{
     bool dirty_bit;
     unsigned int tag;
     uint64_t RPP_tag;            // Replace Policy tag
+    byte * block_content;
 }Block;
 
 
@@ -36,6 +34,7 @@ class Cache: public Storage {
     Cache();
     ~Cache(){};
     
+    void cachehelp();
     // Sets & Gets
     void SetConfig(CacheConfig cc);
     void GetConfig(CacheConfig cc);
@@ -58,6 +57,9 @@ class Cache: public Storage {
     Block ** cache_;
     DISALLOW_COPY_AND_ASSIGN(Cache);
 };
+
+extern Cache l[MAXLEVEL + 1];
+
 
 #endif //CACHE_CACHE_H_ 
 

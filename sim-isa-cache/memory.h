@@ -17,9 +17,10 @@ class Memory: public Storage {
 
  private:
   // Memory implement
-    byte * mem_zero;
+    byte * cmem_zero;
 
   DISALLOW_COPY_AND_ASSIGN(Memory);
 };
+
 
 #endif //CACHE_MEMORY_H_ 

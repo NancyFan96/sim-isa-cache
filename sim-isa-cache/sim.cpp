@@ -42,6 +42,7 @@
 #include "system.h"
 #include "register.hpp"
 #include "memory.hpp"
+#include "memory.h"
 #include "decode.hpp"
 #include "sim.hpp"
 

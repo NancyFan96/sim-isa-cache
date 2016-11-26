@@ -14,6 +14,8 @@
 #include <fstream>
 #include <iostream>
 #include "system.h"
+#include "cache.h"
+#include "memory.h"
 
 #define MEM_SIZE 1<<28           // 0x1000 0000, 256M
 #define STACK_BOTTOM 0x6000000   // bottom address of stack
@@ -45,6 +47,10 @@ public:
     bool  set_memory_f32(memAddress addr,f32 value);
     bool  set_memory_f64(memAddress addr,f64 value);
     
+    
+    // realize cache
+    void SetSettings(Memory& m, Cache* l, StorageStats& storage_stats, CacheConfig* cache_config, StorageLatency& latency_m, StorageLatency* latency_c, int levelNum);
+
 };
 
 extern memory sim_mem;

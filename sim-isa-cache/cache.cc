@@ -1,10 +1,11 @@
+#include "system.h"
 #include "cache.h"
 #include "def.h"
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG
+
 
 inline int lg2(const int x)
 {
@@ -18,9 +19,11 @@ inline int lg2(const int x)
     return num;
 }
 
+Cache l[MAXLEVEL + 1];
+
 Cache::Cache()
 {
-    config_.size = 32;
+    config_.size = 32;//KB
     config_.block_size = 64;
     config_.associativity = 8;
     config_.set_num = 64;
@@ -31,12 +34,16 @@ Cache::Cache()
     for(int i = 0; i < config_.set_num; i++) {
         cache_[i] = new Block[config_.associativity];
         memset(cache_[i], 0, sizeof(Block)*config_.associativity);
+        for(int j = 0; j < config_.associativity; j++){
+            cache_[i][j].block_content = new byte[config_.block_size];
+        }
     }
 }
 
 
 void Cache::SetConfig(CacheConfig cc)
 {
+    int old_set_num = config_.set_num;
     config_ .size = cc.size;
     config_ .block_size = cc.block_size;
     config_ .associativity = cc.associativity;
@@ -48,7 +55,7 @@ void Cache::SetConfig(CacheConfig cc)
            config_ .size, config_ .block_size, config_ .associativity, config_ .set_num);
     printf("write_through(back) = %d, write_alloc(no-alloc) = %d\n", config_ .write_through, config_ .write_allocate);
     
-    for(int i = 0; i < config_.set_num; i++) {
+    for(int i = 0; i < old_set_num; i++) {
         delete [] cache_[i];
     }
     delete [] cache_;
@@ -57,6 +64,9 @@ void Cache::SetConfig(CacheConfig cc)
     for(int i = 0; i < config_.set_num; i++) {
         cache_[i] = new Block[config_.associativity];
         memset(cache_[i], 0, sizeof(Block)*config_.associativity);
+        for(int j = 0; j < config_.associativity; j++){
+            cache_[i][j].block_content = new byte[config_.block_size];
+        }
     }
 }
 

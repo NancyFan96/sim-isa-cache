@@ -28,13 +28,6 @@
 #define SCALL    7
 
 
-/*          create a binary MASK like
- *     value:  000... 00000111...1111000...000
- *  position:  31...       x  ...   y ...  210
- *  for all k if (31>=x>=k>=y>=0), bit(k) = 1,
- *                      otherwise, bit(k) = 0
- */
-#define ONES(x,y)       (reg64) ((((unsigned long)1<<x)-1)+((unsigned long)1<<x) -(((unsigned long)1<<y)-1))
 #define OPCODE          ONES(6,0)      // 7
 #define FUNCT2          ONES(26,25)    // 2
 #define FUNCT3          ONES(14,12)    // 3
