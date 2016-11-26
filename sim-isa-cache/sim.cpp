@@ -55,6 +55,11 @@ bool IS_TO_EXIT = false;
 bool IS_TO_DO = false;
 long int COUNT_INS = 0;
 
+Memory c_mem;
+Cache l[MAXLEVEL + 1];
+
+
+
 static int GDB_TYPE;
 static bool VALID_BREAKPOINT=false;
 static memAddress breakpoint = 0;
@@ -117,7 +122,9 @@ bool load_program(char const *file_name)
     
     sec_header=(Elf64_Shdr*)((unsigned char*)sec_header+sec_header_entry_size);                                 //locate to section .text
     memAddress program_entry_offset=(memAddress)(sec_header->sh_addr);                                          //runtime virtual address
+    //byte*  cur_p_mem=sim_mem.get_memory_p_address(program_entry_offset);
     byte*  cur_p_mem=sim_mem.get_memory_p_address(program_entry_offset);
+    
     Elf64_Half seg_num=elf_header->e_phnum;                                                                     //number of segments
 
     
@@ -130,8 +137,17 @@ bool load_program(char const *file_name)
         Elf64_Xword seg_size_in_mem=seg_header->p_memsz;                                                        //segment size
         memcpy(cur_p_mem,seg_in_file,seg_size_in_mem);                                                          //copy segment to sim_mem
         cur_p_mem =(byte*)cur_p_mem + seg_size_in_mem;
+        //memcpy(cur_p_C_mem,seg_in_file,seg_size_in_mem);
+        //cur_p_C_mem =(byte*)cur_p_C_mem + seg_size_in_mem;
         seg_header=(Elf64_Phdr*)((unsigned char*)seg_header+seg_header_entry_size);                             //next segment entry
         
+    }
+    char * begin = c_mem.get_cmem_base() + 0x10000;
+    reg32 mem_content = 0;
+    for (int i = 0; i < 16 ; i++) {
+        mem_content = *((reg32*)begin);
+        printf("%x ",mem_content);
+        begin+=4;
     }
     /*------------- end of segments copy----------------*/
     
@@ -450,6 +466,76 @@ void print_ins_cnt(){
     
 }
 
+void SetSettings(Memory& m, Cache* l, StorageStats& storage_stats, CacheConfig* cache_config, StorageLatency& latency_m, StorageLatency* latency_c, int levelNum)
+{
+    for(int i = 1; i < levelNum; i++)
+        l[i].SetLower(&l[i + 1]);
+    l[levelNum].SetLower(&m);
+    
+    // set storageStatus and Configulation of memory and cache
+    m.SetStats(storage_stats);
+    for(int i = 1; i <= levelNum; i++)
+    {
+        l[i].SetStats(storage_stats);
+        l[i].SetConfig(cache_config[i]);
+    }
+    
+    // set latency of memory and cache
+    m.SetLatency(latency_m);
+    
+    for(int i = 1; i <= levelNum; i++)
+    {
+        l[i].SetLatency(latency_c[i]);
+    }
+}
+
+void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, StorageLatency* latency_c, CacheConfig* cache_config, int& levelNum){
+    // Level	Capacity	Associativity	Line Size(Bytes)	Write Update Policy Access time Random cycle time
+    // L1	32 KB(32768)	8 ways	64	WriteBack, 1.9ns-4cycle, 0.79ns-2cycle
+    // L2	256 KB(262144)	8 ways	64	WriteBack, 2.13ns-5cycle, 0.83ns-2cycle
+    // LLC	8 MB(8192kB=8388608)	8 ways	64	WriteBack, 5.3ns-11cycle, 1.86ns-4cycle
+    
+    storage_stats.access_counter = 0;
+    storage_stats.miss_num = 0;
+    storage_stats.access_time = 0;
+    storage_stats.replace_num = 0;
+    storage_stats.fetch_num = 0;
+    storage_stats.prefetch_num = 0;
+    
+    latency_m.bus_latency = 6;
+    latency_m.hit_latency = 100;
+
+    
+    cache_config[1].size = 32;
+    cache_config[1].associativity = 8;
+    cache_config[1].block_size = 64;
+    cache_config[1].set_num = 64;
+    cache_config[1].write_through = 0;
+    cache_config[1].write_allocate = 0;
+    latency_c[1].bus_latency = 2;
+    latency_c[1].hit_latency = 4;
+    
+    cache_config[2].size = 256;
+    cache_config[2].associativity = 8;
+    cache_config[2].block_size = 64;
+    cache_config[2].set_num = 512;
+    cache_config[2].write_through = 0;
+    cache_config[2].write_allocate = 0;
+    latency_c[2].bus_latency = 2;
+    latency_c[2].hit_latency = 5;
+    
+    cache_config[3].size = 8192;
+    cache_config[3].associativity = 8;
+    cache_config[3].block_size = 64;
+    cache_config[3].set_num = 16448;
+    cache_config[3].write_through = 0;
+    cache_config[3].write_allocate = 0;
+    latency_c[3].bus_latency = 4;
+    latency_c[3].hit_latency = 11;
+    
+    
+}
+
 int main(int argc, char * argv[]){
     const char * file_name;
     
@@ -492,7 +578,16 @@ int main(int argc, char * argv[]){
     
     print_ins_cnt_init();
     IS_DYCOUNT = false;
-    //memset(COUNTS, 0, sizeof(long int)*HOW_MANY_INSTS);
+
+    // realize cache
+    CacheConfig cache_config[MAXLEVEL+1];
+    StorageStats storage_stats;
+    StorageLatency latency_m, latency_c[MAXLEVEL + 1];
+    int levelNum = 3;
+    initial_cache_mem(storage_stats, latency_m, latency_c, cache_config, levelNum);    
+    SetSettings(c_mem, l, storage_stats, cache_config, latency_m, latency_c, levelNum);
+
+    
     while(1){
         ins inst = fetch();
         instruction fetched_inst;
@@ -515,6 +610,7 @@ int main(int argc, char * argv[]){
                     printf("currentPC = 0x%lx\n", currentPC);
                 }
                 fetched_inst.execute();
+                //printf("sp = 0x%lx, fp = 0x%lx------------------\n", sim_regs.readReg(sp), sim_regs.readReg(s0));
                 if(IS_DYCOUNT) {COUNT_INS++;}
                 //else printf("no count\n");
                 if(IS_TO_EXIT){
@@ -554,8 +650,23 @@ int main(int argc, char * argv[]){
     exit_program();
     
     //print COUNTS
-    print_ins_cnt();
-   
+    //print_ins_cnt();
+    
     cout << "\nBYE "<< file_name<< " !"<< endl<< endl;
+    
+    StorageStats s;
+    for(int i = 1; i <= levelNum; i++){
+        l[i].GetStats(s);
+        printf("\n\nTotal L1 access time: %dns\n", s.access_time);
+        printf("Total L1 access counter: %d\n", s.access_counter);
+        printf("Total L1 miss num: %d\n", s.miss_num);
+        printf("Total L1 hit num: %d\n", s.access_counter - s.miss_num);
+        printf("L1 miss rate: %lf\n", (double)s.miss_num/s.access_counter);
+        printf("Total L1 access time: %dns\n\n", s.access_time);
+    }
+    c_mem.GetStats(s);
+    printf("Total Memory access time: %dns\n", s.access_time);
+
+    
     return 0;
 }

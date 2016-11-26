@@ -11,13 +11,14 @@ class Memory: public Storage {
     Memory();
     ~Memory(){};
 
-  // Main access process
-  void HandleRequest(uint64_t addr, int bytes, int read,
+    // Main access process
+    void HandleRequest(uint64_t addr, int bytes, int read,
                      char *content, int &hit, int &time);
+    char * get_cmem_base(){return cmem_zero;}
 
  private:
   // Memory implement
-    byte * cmem_zero;
+    char * cmem_zero;
 
   DISALLOW_COPY_AND_ASSIGN(Memory);
 };
