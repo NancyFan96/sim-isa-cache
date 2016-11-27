@@ -142,13 +142,7 @@ bool load_program(char const *file_name)
         seg_header=(Elf64_Phdr*)((unsigned char*)seg_header+seg_header_entry_size);                             //next segment entry
         
     }
-    char * begin = c_mem.get_cmem_base() + 0x10000;
-    reg32 mem_content = 0;
-    for (int i = 0; i < 16 ; i++) {
-        mem_content = *((reg32*)begin);
-        printf("%x ",mem_content);
-        begin+=4;
-    }
+
     /*------------- end of segments copy----------------*/
     
     Elf64_Half  sec_num=elf_header->e_shnum;                                                                    //number of sections
@@ -502,8 +496,8 @@ void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, S
     storage_stats.fetch_num = 0;
     storage_stats.prefetch_num = 0;
     
-    latency_m.bus_latency = 6;
-    latency_m.hit_latency = 100;
+    latency_m.bus_latency = 100;
+    latency_m.hit_latency = 0;
 
     
     cache_config[1].size = 32;
@@ -512,7 +506,7 @@ void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, S
     cache_config[1].set_num = 64;
     cache_config[1].write_through = 0;
     cache_config[1].write_allocate = 0;
-    latency_c[1].bus_latency = 2;
+    latency_c[1].bus_latency = 0;
     latency_c[1].hit_latency = 4;
     
     cache_config[2].size = 256;
@@ -521,7 +515,7 @@ void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, S
     cache_config[2].set_num = 512;
     cache_config[2].write_through = 0;
     cache_config[2].write_allocate = 0;
-    latency_c[2].bus_latency = 2;
+    latency_c[2].bus_latency = 0;
     latency_c[2].hit_latency = 5;
     
     cache_config[3].size = 8192;
@@ -530,7 +524,7 @@ void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, S
     cache_config[3].set_num = 16448;
     cache_config[3].write_through = 0;
     cache_config[3].write_allocate = 0;
-    latency_c[3].bus_latency = 4;
+    latency_c[3].bus_latency = 0;
     latency_c[3].hit_latency = 11;
     
     
@@ -657,15 +651,21 @@ int main(int argc, char * argv[]){
     StorageStats s;
     for(int i = 1; i <= levelNum; i++){
         l[i].GetStats(s);
-        printf("\n\nTotal L1 access time: %dns\n", s.access_time);
-        printf("Total L1 access counter: %d\n", s.access_counter);
-        printf("Total L1 miss num: %d\n", s.miss_num);
-        printf("Total L1 hit num: %d\n", s.access_counter - s.miss_num);
-        printf("L1 miss rate: %lf\n", (double)s.miss_num/s.access_counter);
-        printf("Total L1 access time: %dns\n\n", s.access_time);
+        printf("\n\n---------L%d----------\n", i);
+        printf("Total L%d access time: %dns\n", i, s.access_time);
+        printf("Total L%d access counter: %d\n", i, s.access_counter);
+        printf("Total L%d miss num: %d\n", i, s.miss_num);
+        printf("Total L%d hit num: %d\n", i, s.access_counter - s.miss_num);
+        printf("L%d miss rate: %lf\n", i, (double)s.miss_num/s.access_counter);
+        printf("Total L%d replace num: %d\n", i, s.replace_num);
+        printf("Total L%d fetch num: %d\n", i, s.fetch_num);
+        printf("Total L%d prefetch num: %d\n", i, s.prefetch_num);
+        printf("Total L%d access time: %d\n", i, s.access_time);
     }
     c_mem.GetStats(s);
-    printf("Total Memory access time: %dns\n", s.access_time);
+    printf("\n\n---------M----------\n");
+    printf("Total M access counter: %d\n", s.access_counter);
+    printf("Total Memory access time: %d\n\n\n", s.access_time);
 
     
     return 0;

@@ -116,6 +116,8 @@ void Cache::HandleRequest(uint64_t addr, int bytes, int read,
                    // write miss, write no allc, lower_->HandleRequest
                     int lower_hit, lower_time;
                     lower_->HandleRequest(addr, bytes, read, content, lower_hit, lower_time);
+                    stats_.fetch_num++;
+
                     time += latency_.bus_latency + lower_time;
                     stats_.access_time += latency_.bus_latency;
                     //no block evicted, no fetch from lower layer
@@ -134,6 +136,7 @@ void Cache::HandleRequest(uint64_t addr, int bytes, int read,
                     memcpy(victim_content, cache_[set][target].block_content, config_.block_size);
                     lower_->HandleRequest(victim_address, config_.block_size, WRITE, victim_content,
                                           lower_hit, lower_time);
+                    stats_.fetch_num++;
                 }
             case COLD_MISS:
                 // load
