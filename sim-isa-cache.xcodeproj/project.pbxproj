@@ -7,7 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DB5ED6961DE9760800534249 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED6951DE9760800534249 /* main.cpp */; };
+		DB5ED6AD1DE9773A00534249 /* cache.cc in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED69C1DE9773A00534249 /* cache.cc */; };
+		DB5ED6AE1DE9773A00534249 /* decode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED69E1DE9773A00534249 /* decode.cpp */; };
+		DB5ED6AF1DE9773A00534249 /* execute_F.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED6A11DE9773A00534249 /* execute_F.cpp */; };
+		DB5ED6B01DE9773A00534249 /* execute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED6A21DE9773A00534249 /* execute.cpp */; };
+		DB5ED6B11DE9773A00534249 /* memory.cc in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED6A31DE9773A00534249 /* memory.cc */; };
+		DB5ED6B21DE9773A00534249 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED6A41DE9773A00534249 /* memory.cpp */; };
+		DB5ED6B31DE9773A00534249 /* register.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED6A71DE9773A00534249 /* register.cpp */; };
+		DB5ED6B41DE9773A00534249 /* sim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED6A91DE9773A00534249 /* sim.cpp */; };
+		DB5ED6B91DE98EFF00534249 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = DB5ED6B71DE98EFF00534249 /* Makefile */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +32,24 @@
 
 /* Begin PBXFileReference section */
 		DB5ED6921DE9760800534249 /* sim-isa-cache */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "sim-isa-cache"; sourceTree = BUILT_PRODUCTS_DIR; };
-		DB5ED6951DE9760800534249 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		DB5ED69C1DE9773A00534249 /* cache.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cache.cc; sourceTree = "<group>"; };
+		DB5ED69D1DE9773A00534249 /* cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cache.h; sourceTree = "<group>"; };
+		DB5ED69E1DE9773A00534249 /* decode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decode.cpp; sourceTree = "<group>"; };
+		DB5ED69F1DE9773A00534249 /* decode.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = decode.hpp; sourceTree = "<group>"; };
+		DB5ED6A01DE9773A00534249 /* def.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = def.h; sourceTree = "<group>"; };
+		DB5ED6A11DE9773A00534249 /* execute_F.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = execute_F.cpp; sourceTree = "<group>"; };
+		DB5ED6A21DE9773A00534249 /* execute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = execute.cpp; sourceTree = "<group>"; };
+		DB5ED6A31DE9773A00534249 /* memory.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cc; sourceTree = "<group>"; };
+		DB5ED6A41DE9773A00534249 /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
+		DB5ED6A51DE9773A00534249 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = memory.h; sourceTree = "<group>"; };
+		DB5ED6A61DE9773A00534249 /* memory.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = memory.hpp; sourceTree = "<group>"; };
+		DB5ED6A71DE9773A00534249 /* register.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = register.cpp; sourceTree = "<group>"; };
+		DB5ED6A81DE9773A00534249 /* register.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = register.hpp; sourceTree = "<group>"; };
+		DB5ED6A91DE9773A00534249 /* sim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sim.cpp; sourceTree = "<group>"; };
+		DB5ED6AA1DE9773A00534249 /* sim.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sim.hpp; sourceTree = "<group>"; };
+		DB5ED6AB1DE9773A00534249 /* storage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = storage.h; sourceTree = "<group>"; };
+		DB5ED6AC1DE9773A00534249 /* system.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = system.h; sourceTree = "<group>"; };
+		DB5ED6B71DE98EFF00534249 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = "sim-isa-cache/Makefile"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +66,7 @@
 		DB5ED6891DE9760800534249 = {
 			isa = PBXGroup;
 			children = (
+				DB5ED6B51DE98EEE00534249 /* reference */,
 				DB5ED6941DE9760800534249 /* sim-isa-cache */,
 				DB5ED6931DE9760800534249 /* Products */,
 			);
@@ -57,9 +83,33 @@
 		DB5ED6941DE9760800534249 /* sim-isa-cache */ = {
 			isa = PBXGroup;
 			children = (
-				DB5ED6951DE9760800534249 /* main.cpp */,
+				DB5ED6AB1DE9773A00534249 /* storage.h */,
+				DB5ED69C1DE9773A00534249 /* cache.cc */,
+				DB5ED69D1DE9773A00534249 /* cache.h */,
+				DB5ED6A31DE9773A00534249 /* memory.cc */,
+				DB5ED6A51DE9773A00534249 /* memory.h */,
+				DB5ED6A41DE9773A00534249 /* memory.cpp */,
+				DB5ED6A61DE9773A00534249 /* memory.hpp */,
+				DB5ED6A01DE9773A00534249 /* def.h */,
+				DB5ED69E1DE9773A00534249 /* decode.cpp */,
+				DB5ED69F1DE9773A00534249 /* decode.hpp */,
+				DB5ED6A11DE9773A00534249 /* execute_F.cpp */,
+				DB5ED6A21DE9773A00534249 /* execute.cpp */,
+				DB5ED6A71DE9773A00534249 /* register.cpp */,
+				DB5ED6A81DE9773A00534249 /* register.hpp */,
+				DB5ED6A91DE9773A00534249 /* sim.cpp */,
+				DB5ED6AA1DE9773A00534249 /* sim.hpp */,
+				DB5ED6AC1DE9773A00534249 /* system.h */,
 			);
 			path = "sim-isa-cache";
+			sourceTree = "<group>";
+		};
+		DB5ED6B51DE98EEE00534249 /* reference */ = {
+			isa = PBXGroup;
+			children = (
+				DB5ED6B71DE98EFF00534249 /* Makefile */,
+			);
+			name = reference;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -119,7 +169,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DB5ED6961DE9760800534249 /* main.cpp in Sources */,
+				DB5ED6B91DE98EFF00534249 /* Makefile in Sources */,
+				DB5ED6AD1DE9773A00534249 /* cache.cc in Sources */,
+				DB5ED6B41DE9773A00534249 /* sim.cpp in Sources */,
+				DB5ED6B11DE9773A00534249 /* memory.cc in Sources */,
+				DB5ED6B21DE9773A00534249 /* memory.cpp in Sources */,
+				DB5ED6AF1DE9773A00534249 /* execute_F.cpp in Sources */,
+				DB5ED6B31DE9773A00534249 /* register.cpp in Sources */,
+				DB5ED6AE1DE9773A00534249 /* decode.cpp in Sources */,
+				DB5ED6B01DE9773A00534249 /* execute.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

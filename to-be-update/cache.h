@@ -5,10 +5,15 @@
 #include "storage.h"
 #include "def.h"
 
-#define HIT 0
-#define COLD_MISS 1
-#define CONFLICT_MISS 2
+#define HIT 1
+#define MISS 0
 
+#define ONES(x,y)       (uint64_t) ((((uint64_t)1<<x)-1)+((uint64_t)1<<x) -(((uint64_t)1<<y)-1))
+
+
+#define GETSET(addr, offset_tag, offset_set)    ((addr & ONES((offset_tag-1),offset_set)) >> offset_set)
+#define GETTAG(addr, offset_tag)                ((addr & ONES(63,offset_tag)) >> offset_tag)
+#define GETOFFSET(addr, offset_set)             (addr & ONES((offset_set-1), 0))
 
 typedef struct CacheConfig_ {
     int size;
@@ -57,9 +62,6 @@ class Cache: public Storage {
     Block ** cache_;
     DISALLOW_COPY_AND_ASSIGN(Cache);
 };
-
-extern Cache l[MAXLEVEL + 1];
-
 
 #endif //CACHE_CACHE_H_ 
 

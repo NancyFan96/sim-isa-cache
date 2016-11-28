@@ -1,0 +1,10 @@
+                    if(bytes <= config_.block_size - offset){
+                        memcpy(cache_[set][target].block_content+offset, content, bytes);
+                    }
+                    else{
+                        int cur_bytes = config_.block_size - offset;
+                        memcpy(cache_[set][target].block_content+offset, content, cur_bytes);
+                        bytes -= cur_bytes;
+                        int plus_hit, plus_time;
+                        this->HandleRequest(addr+cur_bytes, bytes, read, (content+cur_bytes), plus_hit , plus_time);
+                    }
