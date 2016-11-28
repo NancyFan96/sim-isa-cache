@@ -23,6 +23,11 @@
 extern std::map<std::string,int> COUNTS;
 extern bool IS_DYCOUNT;
 
+extern Memory c_mem;
+extern Cache l[MAXLEVEL + 1];
+extern registers sim_regs;
+extern memory sim_mem;
+
 
 // only valid instruction will enter this function
 void instruction::execute(){
@@ -48,9 +53,14 @@ void instruction::execute(){
             void * buf = (void*)sim_regs.readReg(a1);
             size_t count = (size_t)sim_regs.readReg(a2);
             //printf("args: fd = %d, buf_p = %lx, count(byte) = %d ...\n", fd, (reg64)buf, (int)count);
-            buf = sim_mem.get_memory_p_address((reg64)buf);
-            count = read(fd, buf, count);
+
+            char * content = new char[count];
+            count = read(fd, content, count);
             sim_regs.writeReg(a0, count);
+            for(int i = 0; i < count; i++){
+                //printf("%x", content[i]);
+                sim_mem.set_memory_8((memAddress)((char *)buf+i), content[i]);
+            }
             if(verbose) print_ins("READ");
         }
         else if(sim_regs.readReg(a7) == 64 && sim_regs.readReg(a3) == 0){
@@ -58,11 +68,12 @@ void instruction::execute(){
             int fd = (int)sim_regs.readReg(a0);
             void * buf = (void*)sim_regs.readReg(a1);
             size_t count = (size_t)sim_regs.readReg(a2);
-            void * bufend = (byte*)buf+ count;
-            sim_mem.set_memory_16((reg64)bufend-1, 0x0d0a);
             //printf("args: fd = %d, buf_p = %lx, count(byte) = %d ...\n", fd, (reg64)buf, (int)count);
-            buf = sim_mem.get_memory_p_address((reg64)buf);
-            count = write(fd, buf, count);
+            char * content = new char[count];
+            for(int i = 0; i < count; i++){
+                content[i] = sim_mem.get_memory_8((memAddress)((char *)buf+i));
+            }
+            count = write(fd, content, count);
             sim_regs.writeReg(a0, count);
             fflush(stdout);
             if(verbose) print_ins("WRITE");
@@ -73,8 +84,13 @@ void instruction::execute(){
             //int returntime = gettimeofday(tv_p,NULL);
             //sim_regs.writeReg(a0,  returntime);
             //printf("%d\n", returntime);
-            time_t * tm = (time_t *)sim_mem.get_memory_p_address(sim_regs.readReg(a0));
-            sim_regs.writeReg(a0,  time(tm));
+            time_t * tm_bufp = new time_t;
+            sim_regs.writeReg(a0,  time(tm_bufp));
+            int count = sizeof(time_t);
+            memAddress tm_p = sim_regs.readReg(a0);
+            for(int i = 0; i < count; i++){
+                sim_mem.set_memory_8(tm_p+i, ((byte*)tm_bufp)[i]);
+            }
             if(verbose) print_ins("GETTIMEOFDAY");
         }
         else if(sim_regs.readReg(a7) == 214 &&  sim_regs.readReg(a1) == 0 && sim_regs.readReg(a2) == 0 && sim_regs.readReg(a3) == 0){

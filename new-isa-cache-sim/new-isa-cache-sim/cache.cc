@@ -1,10 +1,34 @@
 #include "cache.h"
-#include "def.h"
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define MAXLEVEL 3
+
+Memory c_mem;
+Cache l[MAXLEVEL + 1];
+
+Memory::Memory(){
+    cmem_zero = new char[((unsigned long)1<<45)-1];
+}
+
+
+void Memory::HandleRequest(uint64_t addr, int bytes, int rw, char *content, int &hit, int &time) {
+    //printf("get into memory!\n");
+    //printf("addr = 0x%llx(%lld), bytes = %d, read = %d\n", addr, addr, bytes, read);
+    
+    hit = 1;
+    time = latency_.hit_latency + latency_.bus_latency;
+    stats_.access_time += time;
+    stats_.access_counter++;
+    
+    if(rw == READ){
+        memcpy(content, cmem_zero + addr, bytes);
+    }else {
+        memcpy(cmem_zero + addr, content, bytes);
+    }
+}
+
 
 inline int lg2(const int x)
 {
@@ -18,7 +42,6 @@ inline int lg2(const int x)
     return num;
 }
 
-Cache l[MAXLEVEL + 1];
 
 Cache::Cache()
 {
@@ -49,10 +72,12 @@ void Cache::SetConfig(CacheConfig cc)
     config_ .set_num = cc.set_num;
     config_ .write_through = cc.write_through;
     config_ .write_allocate = cc.write_allocate;
-    
+
+#ifdef DEBUG
     printf("size = %d, block_size = %d, assc = %d, set_num = %d\n",
            config_ .size, config_ .block_size, config_ .associativity, config_ .set_num);
     printf("write_through(back) = %d, write_alloc(no-alloc) = %d\n", config_ .write_through, config_ .write_allocate);
+#endif
     
     for(int i = 0; i < old_set_num; i++) {
         delete [] cache_[i];
@@ -86,10 +111,11 @@ void Cache::HandleRequest(uint64_t addr, int bytes, int rw, char *content, int &
     unsigned int set = (unsigned int)GETSET(addr, offset_tag, offset_set);
     unsigned int tag = (unsigned int)GETTAG(addr, offset_tag);
     unsigned int offset = (unsigned int)GETOFFSET(addr, offset_set);
-    
+
+#ifdef DEBUG
     printf("\naddr = 0x%llx(%lld), offset_set = %d, offset_tag = %d\n", addr, addr, offset_set, offset_tag);
     printf("set = 0x%x, tag = 0x%x, offset = 0x%x, read = %d\n", set, tag, offset, rw);
-    
+#endif
     // process asking for multiblocks
     int overbytes = offset + bytes - config_.block_size;
     if(overbytes > 0){
@@ -107,8 +133,9 @@ void Cache::HandleRequest(uint64_t addr, int bytes, int rw, char *content, int &
         int condition = ReplaceDecision(set, tag, target);
         hit = (condition == HIT) ? 1:0;
         stats_.access_counter++;
+#ifdef DEBUG
         printf("condition TAG = %d(0|1|2:hit|cold|conflict)\t", condition);
-
+#endif
         if(condition == HIT){
             hit = 1;
             time += latency_.bus_latency + latency_.hit_latency;
@@ -215,15 +242,13 @@ int Cache::ReplaceAlgorithm(const int set){
             victim = i;
         }
     }
-/*
+#ifdef DEBUG
  for(int j = 0; j < config_.associativity; j++){
         printf("%llu\t", cache_[set][j].RPP_tag);
     }
     printf("\n");
     printf("victim = %d\n", victim);
-*/
-    
-    
+#endif
     
     return victim;
 }

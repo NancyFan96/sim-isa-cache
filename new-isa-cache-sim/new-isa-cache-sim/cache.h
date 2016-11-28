@@ -3,12 +3,11 @@
 
 #include <stdint.h>
 #include "storage.h"
-#include "def.h"
+#include "system.h"
 
 #define HIT 1
 #define MISS 0
 
-#define ONES(x,y)       (uint64_t) ((((uint64_t)1<<x)-1)+((uint64_t)1<<x) -(((uint64_t)1<<y)-1))
 
 
 #define GETSET(addr, offset_tag, offset_set)    ((addr & ONES((offset_tag-1),offset_set)) >> offset_set)
@@ -62,6 +61,28 @@ class Cache: public Storage {
     Block ** cache_;
     DISALLOW_COPY_AND_ASSIGN(Cache);
 };
+
+class Memory: public Storage {
+public:
+    Memory();
+    ~Memory(){};
+    
+    // Main access process
+    void HandleRequest(uint64_t addr, int bytes, int read,
+                       char *content, int &hit, int &time);
+    char * get_cmem_base(){return cmem_zero;}
+    
+private:
+    // Memory implement
+    char * cmem_zero;
+    
+    DISALLOW_COPY_AND_ASSIGN(Memory);
+};
+
+
+extern Memory c_mem;
+extern Cache l[MAXLEVEL + 1];
+
 
 #endif //CACHE_CACHE_H_ 
 

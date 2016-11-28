@@ -7,7 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DB6D7B491DEC7166001A4B21 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B481DEC7166001A4B21 /* main.cpp */; };
+		DB6D7B601DEC71AF001A4B21 /* cache.cc in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B4F1DEC71AF001A4B21 /* cache.cc */; };
+		DB6D7B611DEC71AF001A4B21 /* decode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B511DEC71AF001A4B21 /* decode.cpp */; };
+		DB6D7B621DEC71AF001A4B21 /* execute_F.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B541DEC71AF001A4B21 /* execute_F.cpp */; };
+		DB6D7B631DEC71AF001A4B21 /* execute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B551DEC71AF001A4B21 /* execute.cpp */; };
+		DB6D7B651DEC71AF001A4B21 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B571DEC71AF001A4B21 /* memory.cpp */; };
+		DB6D7B661DEC71AF001A4B21 /* register.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B5A1DEC71AF001A4B21 /* register.cpp */; };
+		DB6D7B671DEC71AF001A4B21 /* sim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B5C1DEC71AF001A4B21 /* sim.cpp */; };
+		DB6D7B6A1DEC7317001A4B21 /* count.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B681DEC7317001A4B21 /* count.cpp */; };
+		DB6D7B6D1DEC7512001A4B21 /* gdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB6D7B6B1DEC7512001A4B21 /* gdb.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +32,24 @@
 
 /* Begin PBXFileReference section */
 		DB6D7B451DEC7166001A4B21 /* new-isa-cache-sim */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "new-isa-cache-sim"; sourceTree = BUILT_PRODUCTS_DIR; };
-		DB6D7B481DEC7166001A4B21 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		DB6D7B4F1DEC71AF001A4B21 /* cache.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cache.cc; sourceTree = "<group>"; };
+		DB6D7B501DEC71AF001A4B21 /* cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cache.h; sourceTree = "<group>"; };
+		DB6D7B511DEC71AF001A4B21 /* decode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decode.cpp; sourceTree = "<group>"; };
+		DB6D7B521DEC71AF001A4B21 /* decode.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = decode.hpp; sourceTree = "<group>"; };
+		DB6D7B541DEC71AF001A4B21 /* execute_F.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = execute_F.cpp; sourceTree = "<group>"; };
+		DB6D7B551DEC71AF001A4B21 /* execute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = execute.cpp; sourceTree = "<group>"; };
+		DB6D7B571DEC71AF001A4B21 /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
+		DB6D7B591DEC71AF001A4B21 /* memory.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = memory.hpp; sourceTree = "<group>"; };
+		DB6D7B5A1DEC71AF001A4B21 /* register.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = register.cpp; sourceTree = "<group>"; };
+		DB6D7B5B1DEC71AF001A4B21 /* register.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = register.hpp; sourceTree = "<group>"; };
+		DB6D7B5C1DEC71AF001A4B21 /* sim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sim.cpp; sourceTree = "<group>"; };
+		DB6D7B5D1DEC71AF001A4B21 /* sim.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sim.hpp; sourceTree = "<group>"; };
+		DB6D7B5E1DEC71AF001A4B21 /* storage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = storage.h; sourceTree = "<group>"; };
+		DB6D7B5F1DEC71AF001A4B21 /* system.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = system.h; sourceTree = "<group>"; };
+		DB6D7B681DEC7317001A4B21 /* count.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = count.cpp; sourceTree = "<group>"; };
+		DB6D7B691DEC7317001A4B21 /* count.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = count.hpp; sourceTree = "<group>"; };
+		DB6D7B6B1DEC7512001A4B21 /* gdb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gdb.cpp; sourceTree = "<group>"; };
+		DB6D7B6C1DEC7512001A4B21 /* gdb.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = gdb.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +82,24 @@
 		DB6D7B471DEC7166001A4B21 /* new-isa-cache-sim */ = {
 			isa = PBXGroup;
 			children = (
-				DB6D7B481DEC7166001A4B21 /* main.cpp */,
+				DB6D7B4F1DEC71AF001A4B21 /* cache.cc */,
+				DB6D7B501DEC71AF001A4B21 /* cache.h */,
+				DB6D7B511DEC71AF001A4B21 /* decode.cpp */,
+				DB6D7B521DEC71AF001A4B21 /* decode.hpp */,
+				DB6D7B541DEC71AF001A4B21 /* execute_F.cpp */,
+				DB6D7B551DEC71AF001A4B21 /* execute.cpp */,
+				DB6D7B571DEC71AF001A4B21 /* memory.cpp */,
+				DB6D7B591DEC71AF001A4B21 /* memory.hpp */,
+				DB6D7B5A1DEC71AF001A4B21 /* register.cpp */,
+				DB6D7B5B1DEC71AF001A4B21 /* register.hpp */,
+				DB6D7B5C1DEC71AF001A4B21 /* sim.cpp */,
+				DB6D7B5D1DEC71AF001A4B21 /* sim.hpp */,
+				DB6D7B5E1DEC71AF001A4B21 /* storage.h */,
+				DB6D7B5F1DEC71AF001A4B21 /* system.h */,
+				DB6D7B681DEC7317001A4B21 /* count.cpp */,
+				DB6D7B691DEC7317001A4B21 /* count.hpp */,
+				DB6D7B6B1DEC7512001A4B21 /* gdb.cpp */,
+				DB6D7B6C1DEC7512001A4B21 /* gdb.hpp */,
 			);
 			path = "new-isa-cache-sim";
 			sourceTree = "<group>";
@@ -119,7 +161,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DB6D7B491DEC7166001A4B21 /* main.cpp in Sources */,
+				DB6D7B6A1DEC7317001A4B21 /* count.cpp in Sources */,
+				DB6D7B601DEC71AF001A4B21 /* cache.cc in Sources */,
+				DB6D7B671DEC71AF001A4B21 /* sim.cpp in Sources */,
+				DB6D7B651DEC71AF001A4B21 /* memory.cpp in Sources */,
+				DB6D7B6D1DEC7512001A4B21 /* gdb.cpp in Sources */,
+				DB6D7B621DEC71AF001A4B21 /* execute_F.cpp in Sources */,
+				DB6D7B661DEC71AF001A4B21 /* register.cpp in Sources */,
+				DB6D7B611DEC71AF001A4B21 /* decode.cpp in Sources */,
+				DB6D7B631DEC71AF001A4B21 /* execute.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

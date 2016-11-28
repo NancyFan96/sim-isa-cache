@@ -42,36 +42,43 @@
 #include "system.h"
 #include "register.hpp"
 #include "memory.hpp"
-#include "memory.h"
 #include "decode.hpp"
 #include "sim.hpp"
+#include "gdb.hpp"
+
+#ifdef USE_COUNT
+#include "count.hpp"
+#endif
 
 using namespace std;
 
-bool IS_DYCOUNT = false;
-bool GDB_MODE =false;
-bool verbose = false;
-bool IS_TO_EXIT = false;
-bool IS_TO_DO = false;
-long int COUNT_INS = 0;
-
-Memory c_mem;
-Cache l[MAXLEVEL + 1];
 
 
+memAddress currentPC;
+memAddress main_virtual_address = 0;
 
-static int GDB_TYPE;
-static bool VALID_BREAKPOINT=false;
-static memAddress breakpoint = 0;
-static bool IS_ENTER_STEP = false;
-static bool IS_FIRST_GDB = false;
-static bool IS_NOP = false;
-static bool WAIT = false;
-
-static memAddress currentPC;
-static memAddress main_virtual_address = 0;
-
+#ifdef USE_COUNT
 extern std::map<std::string,int> COUNTS;
+extern long int COUNT_INS;
+#endif
+
+extern bool IS_DYCOUNT;
+extern bool GDB_MODE;
+extern bool verbose;
+extern bool IS_TO_EXIT;
+extern bool IS_TO_DO;
+
+extern int GDB_TYPE;
+extern bool VALID_BREAKPOINT;
+extern memAddress breakpoint;
+extern bool IS_ENTER_STEP;
+extern bool IS_FIRST_GDB;
+extern bool IS_NOP;
+extern bool WAIT;
+
+extern Memory c_mem;
+extern Cache l[MAXLEVEL + 1];
+
 
 void help()
 {
@@ -117,31 +124,43 @@ bool load_program(char const *file_name)
     
     Elf64_Ehdr* elf_header;
     elf_header=(Elf64_Ehdr*)file_buffer;
-    Elf64_Shdr* sec_header=(Elf64_Shdr*)((unsigned char*)elf_header+elf_header->e_shoff);                       //locate to first section
+    //locate to first section
+    Elf64_Shdr* sec_header=(Elf64_Shdr*)((unsigned char*)elf_header+elf_header->e_shoff);                       
     Elf64_Half sec_header_entry_size=elf_header->e_shentsize;
     
-    sec_header=(Elf64_Shdr*)((unsigned char*)sec_header+sec_header_entry_size);                                 //locate to section .text
-    memAddress program_entry_offset=(memAddress)(sec_header->sh_addr);                                          //runtime virtual address
-    //byte*  cur_p_mem=sim_mem.get_memory_p_address(program_entry_offset);
+    //locate to section .text, runtime virtual address
+    sec_header=(Elf64_Shdr*)((unsigned char*)sec_header+sec_header_entry_size);                     
+    memAddress program_entry_offset=(memAddress)(sec_header->sh_addr);                              
+#ifdef CACHE
+    byte*  cur_p_C_mem=sim_mem.get_memory_p_address(program_entry_offset);
+#endif
+#ifndef CACHE
     byte*  cur_p_mem=sim_mem.get_memory_p_address(program_entry_offset);
-    
-    Elf64_Half seg_num=elf_header->e_phnum;                                                                     //number of segments
+#endif
+    Elf64_Half seg_num=elf_header->e_phnum;                                                     
 
-    
-    Elf64_Phdr* seg_header = (Elf64_Phdr*)((unsigned char*)elf_header + elf_header->e_phoff);                   //locate to the first entry of program header table
-    Elf64_Half  seg_header_entry_size=elf_header->e_phentsize;                                                  //Program header table entry size
+
+    //locate to the first entry of program header table    
+    Elf64_Phdr* seg_header = (Elf64_Phdr*)((unsigned char*)elf_header + elf_header->e_phoff);
+    //Program header table entry size                   
+    Elf64_Half  seg_header_entry_size=elf_header->e_phentsize;          
     
     for(int cnt=0;cnt<seg_num;++cnt)
     {
         unsigned char* seg_in_file=(unsigned char*)elf_header+seg_header->p_offset;
-        Elf64_Xword seg_size_in_mem=seg_header->p_memsz;                                                        //segment size
-        memcpy(cur_p_mem,seg_in_file,seg_size_in_mem);                                                          //copy segment to sim_mem
+        Elf64_Xword seg_size_in_mem=seg_header->p_memsz;                                           //segment size
+    
+#ifdef CACHE
+        memcpy(cur_p_C_mem,seg_in_file,seg_size_in_mem);
+        cur_p_C_mem =(byte*)cur_p_C_mem + seg_size_in_mem;
+#endif
+#ifndef CACHE
+        memcpy(cur_p_mem,seg_in_file,seg_size_in_mem);                                            //copy segment to sim_mem
         cur_p_mem =(byte*)cur_p_mem + seg_size_in_mem;
-        //memcpy(cur_p_C_mem,seg_in_file,seg_size_in_mem);
-        //cur_p_C_mem =(byte*)cur_p_C_mem + seg_size_in_mem;
-        seg_header=(Elf64_Phdr*)((unsigned char*)seg_header+seg_header_entry_size);                             //next segment entry
-        
+#endif
+        seg_header=(Elf64_Phdr*)((unsigned char*)seg_header+seg_header_entry_size);
     }
+#ifdef DEBUG
     char * begin = c_mem.get_cmem_base() + 0x10000;
     reg32 mem_content = 0;
     for (int i = 0; i < 16 ; i++) {
@@ -149,25 +168,30 @@ bool load_program(char const *file_name)
         printf("%x ",mem_content);
         begin+=4;
     }
+#endif
     /*------------- end of segments copy----------------*/
     
-    Elf64_Half  sec_num=elf_header->e_shnum;                                                                    //number of sections
-    sec_header=(Elf64_Shdr*)((unsigned char*)elf_header+elf_header->e_shoff);                                   //locate to first section
+    Elf64_Half  sec_num=elf_header->e_shnum;                                                      
+    sec_header=(Elf64_Shdr*)((unsigned char*)elf_header+elf_header->e_shoff);                     //locate to first section
     sec_header_entry_size=elf_header->e_shentsize;
-    Elf64_Shdr* strtab_sec_header=(Elf64_Shdr*)((unsigned char*)sec_header+sec_header_entry_size*(sec_num-1));  //locate to section header of string table
-    Elf64_Off strtab_offset=strtab_sec_header->sh_offset;                                                       //read string table offset offset
-    unsigned char* p_strtab=(unsigned char*)elf_header+strtab_offset;                                           //point to the beginning of string table
+    //locate to section header of string table
+    Elf64_Shdr* strtab_sec_header=(Elf64_Shdr*)((unsigned char*)sec_header+sec_header_entry_size*(sec_num-1)); 
+    //read string table offset offset 
+    Elf64_Off strtab_offset=strtab_sec_header->sh_offset;   
+    //point to the beginning of string table                                                    
+    unsigned char* p_strtab=(unsigned char*)elf_header+strtab_offset;                                           
     
     
-    for(int cnt=0;cnt<sec_num;++cnt)                                                                            //for each section
+    for(int cnt=0;cnt<sec_num;++cnt)                                                                            
     {
         Elf64_Word section_type=sec_header->sh_type;
-        if(section_type==2)                                                                                     //if section type==SYMTAB
-        {
+        if(section_type==2)                                                                                     
+        {// if section type==SYMTAB
             Elf64_Off symtab_offset=sec_header->sh_offset;
             Elf64_Xword   sh_size=sec_header->sh_size;
-            long int symtab_num=sh_size/sizeof(Elf64_Sym);                                                      //number of entries in symbol table
-            Elf64_Sym* p_symtab=(Elf64_Sym*)((unsigned char*)elf_header+symtab_offset);                         //locate to the first entry
+            //number of entries in symbol table, locate to the first entry
+            long int symtab_num=sh_size/sizeof(Elf64_Sym);                                                      
+            Elf64_Sym* p_symtab=(Elf64_Sym*)((unsigned char*)elf_header+symtab_offset);                         
             for(int entry_cnt=0;entry_cnt<symtab_num;++entry_cnt)
             {
                 Elf64_Word    st_name=p_symtab->st_name;
@@ -230,264 +254,8 @@ ins fetch(){
     return inst;
 }
 
-//gdb mode execute function
-bool gdb_mode_func()
-{
-    char cmd[20];
-    memAddress break_addr=0;
-    memAddress debug_mem=0;
-    reg32 mem_content=0;
-    if(IS_FIRST_GDB)
-    {
-        printf(">\n");
-        printf("> main function start at %lx\n",main_virtual_address);
-        printf("> select a mode you want to run with:\n");
-        printf("> break: set breakpoint\n");
-        printf("> delete: delete breakpoint\n");
-        printf("> continue: continue running\n");
-        printf("> step: step mode\n");
-        printf("> memory: print memory content\n");
-        printf("> register: print register file info\n");
-        printf("> quit: quit gdb mode\n>\n>\n");
-    }
-    
-    printf("> ");
-    scanf("%s",cmd);        //read command
-    fflush(stdin);          //clean stdin buffer
-    char cmd_char = 'a';
-    if (strcmp(cmd,"break")==0)
-        cmd_char = 'b';
-    else if(strcmp(cmd,"delete")==0)
-        cmd_char = 'd';
-    else if(strcmp(cmd,"continue")==0)
-        cmd_char = 'c';
-    else if(strcmp(cmd,"step")==0)
-        cmd_char = 's';
-    else if(strcmp(cmd,"memory")==0)
-        cmd_char = 'm';
-    else if(strcmp(cmd,"register")==0)
-        cmd_char = 'r';
-    else if(strcmp(cmd,"quit")==0)
-        cmd_char = 'q';
-    
-    switch (cmd_char)
-    {
-        case 'b':
-            GDB_TYPE = set_breakpoint;
-            printf("> set breakpoint address\n");
-            printf("> ");
-            scanf("%lx",&break_addr);   //set breakpoint addresss
-            VALID_BREAKPOINT=true;
-            breakpoint=break_addr;
-            return true;
-        case 'd':
-            GDB_TYPE = delete_breakpoint;
-            printf("> delete breakpoint(%lx)\n", breakpoint);
-            VALID_BREAKPOINT = false;
-            WAIT = true;
-            IS_NOP = true;
-            return true;
-        case 'c':
-            GDB_TYPE = continue_run;
-            printf("> continue running...\n");
-            return true;
-        case 's':
-            if(GDB_TYPE != step)
-                IS_ENTER_STEP = true;
-            if(IS_ENTER_STEP)
-            {
-                printf(">\n");
-                printf("> --------------------step mode--------------------\n");
-                IS_ENTER_STEP = false;
-            }
-            GDB_TYPE = step;
-            VALID_BREAKPOINT=true;
-            breakpoint=sim_regs.getPC();
-            return true;
-        case 'm':
-            GDB_TYPE = print_mem;
-            IS_NOP = true;
-            WAIT = true;
-            printf("> set memory address\n");
-            printf("> ");
-            scanf("%lx",&debug_mem);
-            for(int row=0;row<4;++row){
-                printf("> ");
-                for(int col=0;col<4;++col){
-                    mem_content=sim_mem.get_memory_32(debug_mem);
-                    printf("0x%08x",mem_content);
-                    printf("    ");
-                    debug_mem+=4;
-                }
-                printf("\n");
-            }
-            return true;
-        case 'r':
-            GDB_TYPE = print_reg;
-            IS_NOP = true;
-            WAIT = true;
-            sim_regs.readReg();
-            sim_regs.readFloatReg();
-            return true;
-        case 'q':
-            GDB_MODE=false;
-            GDB_TYPE = quit_gdb;
-            verbose = false;
-            return false;
-        default:
-            printf("> invalid command\n");
-            //GDB_MODE=false;
-            GDB_TYPE = undefined_gdb;
-            IS_NOP = true;
-            verbose = false;
-            return true;
-    }
-    
-}
 
-void print_ins_cnt_init(){
-    COUNTS["FMADD_D"] = 0;
-    COUNTS["ADD"] = 0;
-    COUNTS["SLL"] = 0;
-    COUNTS["SLT"] = 0;
-    COUNTS["SLTU"] = 0;
-    COUNTS["XOR"] = 0;
-    COUNTS["SRL"] = 0;
-    COUNTS["OR"] = 0;
-    COUNTS["AND"] = 0;
-    COUNTS["SUB"] = 0;
-    COUNTS["SRA"] = 0;
-    COUNTS["MUL"] = 0;
-    COUNTS["MULH"] = 0;
-    COUNTS["MULHSH"] = 0;
-    COUNTS["MULHU"] = 0;
-    COUNTS["DIV"] = 0;
-    COUNTS["DIVU"] = 0;
-    COUNTS["REM"] = 0;
-    COUNTS["REMU"] = 0;
-    COUNTS["ADDW"] = 0;
-    COUNTS["SLLW"] = 0;
-    COUNTS["SRLW"] = 0;
-    COUNTS["SUBW"] = 0;
-    COUNTS["SRAW"] = 0;
-    COUNTS["MULW"] = 0;
-    COUNTS["DIVW"] = 0;
-    COUNTS["DIVUW"] = 0;
-    COUNTS["REMW"] = 0;
-    COUNTS["REMUW"] = 0;
-    COUNTS["FADD_S"] = 0;
-    COUNTS["FADD_D"] = 0;
-    COUNTS["FSUB_S"] = 0;
-    COUNTS["FSUB_D"] = 0;
-    COUNTS["FMUL_S"] = 0;
-    COUNTS["FSUB_D"] = 0;
-    COUNTS["FMUL_S"] = 0;
-    COUNTS["FMUL_D"] = 0;
-    COUNTS["FEQ_S"] = 0;
-    COUNTS["FLT_S"] = 0;
-    COUNTS["FLE_S"] = 0;
-    COUNTS["FEQ_D"] = 0;
-    COUNTS["FLT_D"] = 0;
-    COUNTS["FLE_D"] = 0;
-    COUNTS["JALR"] = 0;
-    COUNTS["LB"] = 0;
-    COUNTS["LH"] = 0;
-    COUNTS["LW"] = 0;
-    COUNTS["LBU"] = 0;
-    COUNTS["LHU"] = 0;
-    COUNTS["LD"] = 0;
-    COUNTS["ADDI"] = 0;
-    COUNTS["SLTI"] = 0;
-    COUNTS["SLTIU"] = 0;
-    COUNTS["XORI"] = 0;
-    COUNTS["ORI"] = 0;
-    COUNTS["ANDI"] = 0;
-    COUNTS["SLLI"] = 0;
-    COUNTS["SRLI"] = 0;
-    COUNTS["SRAI"] = 0;
-    COUNTS["ADDIW"] = 0;
-    COUNTS["SLLIW"] = 0;
-    COUNTS["SRLIW"] = 0;
-    COUNTS["SRAIW"] = 0;
-    COUNTS["SB"] = 0;
-    COUNTS["SH"] = 0;
-    COUNTS["SW"] = 0;
-    COUNTS["SD"] = 0;
-    COUNTS["BEQ"] = 0;
-    COUNTS["BNE"] = 0;
-    COUNTS["BLT"] = 0;
-    COUNTS["BGE"] = 0;
-    COUNTS["BLTU"] = 0;
-    COUNTS["BGEU"] = 0;
-    COUNTS["FLW"] = 0;
-    COUNTS["FLD"] = 0;
-    COUNTS["FSW"] = 0;
-    COUNTS["FSD"] = 0;
-    COUNTS["SFGNJ_D"] = 0;
-    COUNTS["FSGNJN_D"] = 0;
-    COUNTS["FCVT_S_D"] = 0;
-    COUNTS["FCVT_D_S"] = 0;
-    COUNTS["FCVT_W_S"] = 0;
-    COUNTS["FCVT_WU_S"] = 0;
-    COUNTS["FCVT_W_D"] = 0;
-    COUNTS["FCVT_WU_D"] = 0;
-    COUNTS["FCVT_S_W"] = 0;
-    COUNTS["FCVT_S_WU"] = 0;
-    COUNTS["FCVT_D_W"] = 0;
-    COUNTS["FCVT_D_WU"] = 0;
-    COUNTS["FCVT_L_S"] = 0;
-    COUNTS["FCVT_L_D"] = 0;
-    COUNTS["FCVT_S_L"] = 0;
-    COUNTS["FMV_X_D"] = 0;
-    COUNTS["FMV_D_X"] = 0;
-    COUNTS["LUI"] = 0;
-    COUNTS["AUIPC"] = 0;
-    COUNTS["JAL"] = 0;
-    COUNTS["MULHSU"] = 0;
-    COUNTS["ECALL"] = 0;
-}
 
-void print_ins_cnt(){
-    double ins_percent;
-    //double check = 0;
-    cout<<"\n\nINSTRUCTION PROFILE TABLE\n"<<setw(20)<<"INS NAME"<<setw(20)<<"COUNT"<<setw(20)<<"Percent(%)"<<endl;
-    map<string, int>::iterator i_ins;
-    for (i_ins = COUNTS.begin(); i_ins!=COUNTS.end(); i_ins++) {
-        if (i_ins->second!=0) {
-                cout<<setw(20)<<i_ins->first;
-                cout<<setw(20)<<i_ins->second;
-                ins_percent = (double)i_ins->second/COUNT_INS;
-                cout<<setw(20)<<setiosflags(ios::fixed)<<setprecision(4)<<ins_percent*100<<endl;
-                //check+=i_ins->second;
-        }
-    }
-    cout<<"total instructions: "<<COUNT_INS<<endl;
-    //cout << check << endl;
-    
-}
-
-void SetSettings(Memory& m, Cache* l, StorageStats& storage_stats, CacheConfig* cache_config, StorageLatency& latency_m, StorageLatency* latency_c, int levelNum)
-{
-    for(int i = 1; i < levelNum; i++)
-        l[i].SetLower(&l[i + 1]);
-    l[levelNum].SetLower(&m);
-    
-    // set storageStatus and Configulation of memory and cache
-    m.SetStats(storage_stats);
-    for(int i = 1; i <= levelNum; i++)
-    {
-        l[i].SetStats(storage_stats);
-        l[i].SetConfig(cache_config[i]);
-    }
-    
-    // set latency of memory and cache
-    m.SetLatency(latency_m);
-    
-    for(int i = 1; i <= levelNum; i++)
-    {
-        l[i].SetLatency(latency_c[i]);
-    }
-}
 
 void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, StorageLatency* latency_c, CacheConfig* cache_config, int& levelNum){
     // Level	Capacity	Associativity	Line Size(Bytes)	Write Update Policy Access time Random cycle time
@@ -533,6 +301,26 @@ void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, S
     latency_c[3].bus_latency = 4;
     latency_c[3].hit_latency = 11;
     
+    for(int i = 1; i < levelNum; i++)
+        l[i].SetLower(&l[i + 1]);
+    l[levelNum].SetLower(&c_mem);
+    
+    // set storageStatus and Configulation of memory and cache
+    c_mem.SetStats(storage_stats);
+    for(int i = 1; i <= levelNum; i++)
+    {
+        l[i].SetStats(storage_stats);
+        l[i].SetConfig(cache_config[i]);
+    }
+    
+    // set latency of memory and cache
+    c_mem.SetLatency(latency_m);
+    
+    for(int i = 1; i <= levelNum; i++)
+    {
+        l[i].SetLatency(latency_c[i]);
+    }
+
     
 }
 
@@ -575,8 +363,10 @@ int main(int argc, char * argv[]){
         cout << "LOAD ERROR!" << endl;
         return -1;
     }
-    
+
+#ifdef USE_COUNT
     print_ins_cnt_init();
+#endif
     IS_DYCOUNT = false;
 
     // realize cache
@@ -585,7 +375,6 @@ int main(int argc, char * argv[]){
     StorageLatency latency_m, latency_c[MAXLEVEL + 1];
     int levelNum = 3;
     initial_cache_mem(storage_stats, latency_m, latency_c, cache_config, levelNum);    
-    SetSettings(c_mem, l, storage_stats, cache_config, latency_m, latency_c, levelNum);
 
     
     while(1){
@@ -648,24 +437,30 @@ int main(int argc, char * argv[]){
     }
     
     exit_program();
-    
+
+#ifdef USE_COUNT
     //print COUNTS
     //print_ins_cnt();
-    
+#endif
     cout << "\nBYE "<< file_name<< " !"<< endl<< endl;
     
     StorageStats s;
     for(int i = 1; i <= levelNum; i++){
         l[i].GetStats(s);
-        printf("\n\nTotal L1 access time: %dns\n", s.access_time);
-        printf("Total L1 access counter: %d\n", s.access_counter);
-        printf("Total L1 miss num: %d\n", s.miss_num);
-        printf("Total L1 hit num: %d\n", s.access_counter - s.miss_num);
-        printf("L1 miss rate: %lf\n", (double)s.miss_num/s.access_counter);
-        printf("Total L1 access time: %dns\n\n", s.access_time);
+        printf("\n\n---------------L%d---------------\n", i);
+        printf("Total L%d access counter: %d   <<---\n", i, s.access_counter);
+        printf("Total L%d miss num: %d\n", i, s.miss_num);
+        printf("Total L%d hit num: %d\n", i, s.access_counter - s.miss_num);
+        printf("L%d miss rate: %lf           ##\n", i, (double)s.miss_num/s.access_counter);
+        printf("Total L%d replace num: %d\n", i, s.replace_num);
+        printf("Total L%d fetch num: %d        --->>\n", i, s.fetch_num);
+        printf("Total L%d prefetch num: %d\n", i, s.prefetch_num);
+        printf("Total L%d access time: %d cycle\n", i, s.access_time);
     }
     c_mem.GetStats(s);
-    printf("Total Memory access time: %dns\n", s.access_time);
+    printf("\n\n---------------M---------------\n");
+    printf("Total M access counter: %d\n", s.access_counter);
+    printf("Total Memory access time: %d cycle\n\n\n", s.access_time);
 
     
     return 0;

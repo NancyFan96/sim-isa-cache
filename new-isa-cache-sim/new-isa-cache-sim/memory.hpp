@@ -26,7 +26,9 @@
 class memory {
 public:
     byte * mem_zero;                    // 8bit
+#ifdef TRACE
     std::ofstream trace_out;            //trace file
+#endif
     
 public:
     memory();
