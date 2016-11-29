@@ -280,7 +280,7 @@ void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, S
     cache_config[1].set_num = 64;
     cache_config[1].write_through = 0;
     cache_config[1].write_allocate = 0;
-    latency_c[1].bus_latency = 2;
+    latency_c[1].bus_latency = 0;
     latency_c[1].hit_latency = 4;
     
     cache_config[2].size = 256;
@@ -289,7 +289,7 @@ void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, S
     cache_config[2].set_num = 512;
     cache_config[2].write_through = 0;
     cache_config[2].write_allocate = 0;
-    latency_c[2].bus_latency = 2;
+    latency_c[2].bus_latency = 0;
     latency_c[2].hit_latency = 5;
     
     cache_config[3].size = 8192;
@@ -298,7 +298,7 @@ void initial_cache_mem(StorageStats& storage_stats, StorageLatency& latency_m, S
     cache_config[3].set_num = 16448;
     cache_config[3].write_through = 0;
     cache_config[3].write_allocate = 0;
-    latency_c[3].bus_latency = 4;
+    latency_c[3].bus_latency = 0;
     latency_c[3].hit_latency = 11;
     
     for(int i = 1; i < levelNum; i++)

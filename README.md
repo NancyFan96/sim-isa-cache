@@ -7,6 +7,7 @@
 * 2.0 commit: **REALIZE IT**!
 
 ## QuikStart
+这是体系实习Lab3-1与Lab2的拼接，实现了带三级Cache的RISC-V ISA Simulator.
 
 ### Help info
 
@@ -16,6 +17,12 @@
                ./sim --help
     Multiple ELFs is NOT supported!
 ```
+
+Level | Capacity | Associativity | Line Size(Bytes)|Write Update Policy|Hit Latency(cycle)
+------|----------|---------------|-----------------|----------|---
+L1 | 32 KB |8 ways | 64 | WriteBack|4
+L2 | 256 KB |8 ways | 64 | WriteBack|5
+LLC | 8 MB | 8 ways | 64 | WriteBack|11
 
 
 ## 文件结构
@@ -60,3 +67,4 @@
 │   	├── time.objdump
 
 ```
+
