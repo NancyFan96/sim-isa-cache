@@ -21,9 +21,8 @@
 #define quit_gdb 6
 #define undefined_gdb 7
 
+
 bool gdb_mode_func();
-
-
 
 extern bool IS_DYCOUNT;
 extern bool GDB_MODE;

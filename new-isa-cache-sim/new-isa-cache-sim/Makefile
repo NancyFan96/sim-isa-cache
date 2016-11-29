@@ -1,15 +1,38 @@
 CC = g++
 PROC = sim-cache
 
-SRC=	sim.cpp memory.cpp register.cpp decode.cpp execute.cpp execute_F.cpp cache.cc 
-HDR=	system.h sim.hpp memory.hpp register.hpp decode.hpp cache.h storage.h 
+OBJECTS = sim.o gdb.o count.o \
+			memory.o cache.o register.o \
+			decode.o execute.o execute_F.o 
+
+MAIN = sim.o gdb.o count.o
+GDB = gdb.o
+COUNT = count.o
+MEMORY = memory.o cache.o 
+CACHE = cache.o
+REGISTER = register.o
+EXECUTE = decode.o execute.o execute_F.o
 
 
-all: 	$(PROC)
+sim-cache: 	$(OBJECTS)
+	$(CC) -o $(PROC) $(OBJECTS) -Wall
 
-sim-cache: 	$(SRC) $(HDR)
-	$(CC) -o $(PROC) *.cpp *.cc -Wall
+$(OBJECTS): system.h
 
+$(CACHE): storage.h cache.h 
 
+$(MEMORY) $(EXECUTE) $(MAIN): memory.hpp 
+
+$(REGISTER) $(EXECUTE) $(MAIN): register.hpp
+
+$(EXECUTE) $(MAIN): decode.hpp 
+
+$(GDB) $(MAIN): gdb.hpp
+
+$(COUNT) $(MAIN): count.hpp
+
+$(MAIN) $(MAIN): sim.hpp	
+
+.PHONY : clean
 clean:
-	-rm $(PROC) 
+	-rm $(PROC) *.o
