@@ -27,9 +27,13 @@ LLC | 8 MB | 8 ways | 64 | WriteBack|11
 
 ## 文件结构
 
+* sim-isa-cache是双通道memory，Cache不实际操作读写
+
+* new-isa-cache-sim是最终版，simulator的memory升级到了三级Cache
+
 ```
 ├── readme.md   
-├── src/    
+├── src/ 							# alias as "new-isa-cache-sim"   
 │   ├── system.h 					# THIS IS RISCV R64IFM
 │   ├── sim.hpp 						# Contains MAIN function
 │   ├── sim.cpp  
